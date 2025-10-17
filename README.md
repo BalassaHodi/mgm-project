@@ -99,10 +99,7 @@ Miután ez megvolt, hogy a többiek lássák a változtatásokat, és közösen 
   - **Reviewers:** Ide meg lehet adni azt akinek ezt érdemes megnéznie (mindenkit akár)
 - majd **Create Pull Request**
 
-Ezt a _Pull request_-et a többiek megnézhetik, kommentelhetnek alá, kérhetnek változásokat, de majd ha el lett fogadva jónak, akkor össze lehet fűzni a `main` branch-el két módon:
-
-- **Smash and merge**: ez összefűzi a commitokat egy közössé (könnyebben átlátható)
-- **Merge commit**: ez minden commitot külön hagy
+Ezt a _Pull request_-et a többiek megnézhetik, kommentelhetnek alá, kérhetnek változásokat, de majd ha el lett fogadva jónak, akkor össze lehet fűzni a `main` branch-el a **Merge pull request** gombra kattintva.
 
 Miután ez megvolt le lehet törölni a githubban a branchet, illetve lokálisan is le lehet törölni az adott branchet:
 
