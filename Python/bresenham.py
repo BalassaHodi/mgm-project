@@ -20,21 +20,12 @@ def bresenham(x0, y0, x1, y1):
         dx, dy = dy, dx
         xx, xy, yx, yy = 0, ysign, xsign, 0
 
-    D = 2*dy - dx
+    D = 2 * dy - dx
     y = 0
 
     for x in range(dx + 1):
-        yield x0 + x*xx + y*yx, y0 + x*xy + y*yy
+        yield x0 + x * xx + y * yx, y0 + x * xy + y * yy
         if D >= 0:
             y += 1
-            D -= 2*dx
-        D += 2*dy
-
-
-def main(args=None):
-    x0, y0, x1, y1 = 0,0,10,10
-    points = list(bresenham(x0, y0, x1, y1))
-    print(points)
-
-if __name__ == "__main__":
-    main()
+            D -= 2 * dx
+        D += 2 * dy
