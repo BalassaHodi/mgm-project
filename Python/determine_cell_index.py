@@ -4,11 +4,7 @@ Description: For a given coordinate of a point (X, Y) we determine which cell do
 Note that the algorithm is a self-developed work, so it might not be the most efficient one.
 """
 
-
-class Cell:
-    def __init__(self, row, column):
-        self.row = row
-        self.column = column
+from Python.classes.cell import Cell
 
 
 def determine_cell_index(X: float, Y: float, n: int, m: int, w: float):
