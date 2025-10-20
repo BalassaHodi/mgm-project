@@ -4,7 +4,7 @@ Description: For a given coordinate of a point (X, Y) we determine which cell do
 Note that the algorithm is a self-developed work, so it might not be the most efficient one.
 """
 
-from Python.classes.cell import Cell
+from classes.cell import Cell
 
 
 def determine_cell_index(X: float, Y: float, n: int, m: int, w: float):
@@ -16,7 +16,7 @@ def determine_cell_index(X: float, Y: float, n: int, m: int, w: float):
     <ul>
         <li> The origin of the global coordinate system is at the bottom left of the grid map, and the indexes increase. </li>
         <li> The indexes of the first cell is (1,1) NOT (0,0). </li>
-        <li> If a point is on the edge of a cell, it belongs to the cell with the bigger index. </li>
+        <li> If a point is on the edge of a cell, it belongs to the cell with the smaller index. </li>
     </ul>
     """
 

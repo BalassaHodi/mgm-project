@@ -3,7 +3,7 @@ Created by: Balassa Hodi
 Short description comes here
 """
 
-from Python.classes.coordinates import Coordinates
+from classes.coordinates import Coordinates
 import math
 
 
