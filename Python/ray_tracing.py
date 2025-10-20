@@ -23,11 +23,12 @@ NOTE:
 * there
 """
 
-from Python.classes.robot_position import RobotPosition
-from Python.classes.cell import Cell
-from Python.classes.lidar_sensor_data import LidarData
+from classes.robot_position import RobotPosition
+from classes.cell import Cell
+from classes.lidar_sensor_data import LidarData
 from determine_cell_index import determine_cell_index
 from calc_coordinates import calc_coordinates
+from classes.coordinates import Coordinates
 import math
 
 
@@ -47,12 +48,146 @@ def get_xy_line_eq(
         return ((x2 - x1) * yk - y1 * x2 + y2 * x1) / (y2 - y1)
 
 
-def x_step_algo(xSign: int):
-    pass
+def x_step_algo(
+    xSign: int,
+    startCell: Cell,
+    endCell: Cell,
+    w: float,
+    robot_pos: RobotPosition,
+    endCoordinates: Coordinates,
+    freeCells: list,
+    n: int,
+    m: int,
+):
+    """
+    How does it work briefly?
+    1. For every x-step, we find the y value of the line.
+    2. The two horizontally neighbouring cells are free cells.
+    3. If the point is at a corner, the 4 neighbouring cells are free cells.
+
+    The steps of the algorithm:
+    1. Find the start cell and the end cell indexes.
+    2. Determine the length of the for loop based on the index difference of the start and end cell in the x direction.
+    3. in the for loop in every iteration do:
+        - calculate the x coordinate of the current cell edge
+        - calculate the y coordinate of the line at this x position
+        - if the y coordinate indicates the same cell as the previous iteration, only the new cell in the x direction shall be added to the free cells
+        - else determine the two horizontally neighbouring cells based on the calculated y coordinate
+        - if the point is at a corner, determine the 4 neighbouring cells
+    """
+
+    # find the start cell and the end cell indexes
+    startCellColumn = startCell.column
+    startCellRow = startCell.row
+    endCellColumn = endCell.column
+    endCellRow = endCell.row
+
+    # the loop
+    for i in range(startCellColumn, endCellColumn, xSign):
+        # previous cell row initialization
+        previousCellRow = startCellRow
+
+        # calculate the x coordinate of the current cell edge
+        x = i * w if xSign == 1 else (i - 1) * w
+
+        # calculate the y coordinate of the line at this x position
+        y = get_xy_line_eq(
+            robot_pos.X,
+            robot_pos.Y,
+            endCoordinates.x,
+            endCoordinates.y,
+            x,
+            0,
+            "y",
+        )
+
+        # determine the two horizontally neighbouring cells based on the calculated y coordinate
+        cellLeft = determine_cell_index(x, y, n, m, w)
+        cellRight = Cell(cellLeft.row, cellLeft.column + 1)
+
+        # add the free cells to the list
+        if xSign == 1:
+            if i != endCellColumn - 1:
+                freeCells.append(cellRight)
+            elif i == endCellColumn - 1 and cellRight.row != endCellRow:
+                freeCells.append(cellRight)
+
+            if cellRight.row != previousCellRow:
+                freeCells.append(cellLeft)
+        else:
+            if i != endCellColumn + 1:
+                freeCells.append(cellLeft)
+            elif i == endCellColumn + 1 and cellLeft.row != endCellRow:
+                freeCells.append(cellLeft)
+
+            if cellLeft.row != previousCellRow:
+                freeCells.append(cellRight)
+
+        # previous cell row update
+        previousCellRow = cellRight.row if xSign == 1 else cellLeft.row
+
+    freeCells.append(endCell)
 
 
-def y_step_algo(ySign: int):
-    pass
+def y_step_algo(
+    ySign: int,
+    startCell: Cell,
+    endCell: Cell,
+    w: float,
+    robot_pos: RobotPosition,
+    endCoordinates: Coordinates,
+    freeCells: list,
+    n: int,
+    m: int,
+):
+    """
+    Here comes some description.
+    """
+    # find the start cell and the end cell indexes
+    startCellColumn = startCell.column
+    startCellRow = startCell.row
+    endCellColumn = endCell.column
+    endCellRow = endCell.row
+
+    # the loop
+    for i in range(startCellRow, endCellRow, ySign):
+        # previous cell column initialization
+        previousCellColumn = startCellColumn
+
+        # calculate the y coordinate of the current cell edge
+        y = i * w if ySign == 1 else (i - 1) * w
+
+        # calculate the y coordinate of the line at this x position
+        x = get_xy_line_eq(
+            robot_pos.X, robot_pos.Y, endCoordinates.x, endCoordinates.y, 0, y, "x"
+        )
+
+        # determine the two vertically neighbouring cells based on the calculated x coordinate
+        cellDown = determine_cell_index(x, y, n, m, w)
+        cellUp = Cell(cellDown.row + 1, cellDown.column)
+
+        # add the free cells to the list
+        if ySign == 1:
+            if i != endCellRow - 1:
+                freeCells.append(cellUp)
+            elif i == endCellRow - 1 and cellUp.column != endCellColumn:
+                freeCells.append(cellUp)
+
+            if cellUp.column != previousCellColumn:
+                freeCells.append(cellDown)
+        else:
+            if i != endCellRow + 1:
+                freeCells.append(cellDown)
+            elif i == endCellRow + 1 and cellDown.column != endCellColumn:
+                freeCells.append(cellDown)
+
+            if cellDown.column != previousCellColumn:
+                freeCells.append(cellUp)
+
+        # previous cell column update
+        previousCellColumn = cellUp.column if ySign == 1 else cellDown.column
+
+    freeCells.append(endCell)
 
 
 def ray_tracing(
@@ -70,8 +205,8 @@ def ray_tracing(
     X = robot_pos.X
     Y = robot_pos.Y
     Theta = robot_pos.Theta  # in degree
-    n = robot_cell.row
-    m = robot_cell.column
+    n = 100  # grid dimensions --> hardcoded just for debugging
+    m = 100  # grid dimensions --> hardcoded just for debugging
     alpha = lidar_data.alpha  # in degree
     l = lidar_data.length
     p = lidar_cell.row
@@ -90,13 +225,23 @@ def ray_tracing(
     # check which algorithm shall we do
     if 45 < Alpha < 135:
         ySign = 1
-        y_step_algo(ySign)
+        y_step_algo(
+            ySign, robot_cell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
+        )
     elif 45 <= Alpha <= 225:
         xSign = -1
-        x_step_algo(xSign)
+        x_step_algo(
+            xSign, robot_cell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
+        )
     elif 225 < Alpha < 315:
         ySign = -1
-        y_step_algo(ySign)
+        y_step_algo(
+            ySign, robot_cell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
+        )
     else:
         xSign = 1
-        x_step_algo(xSign)
+        x_step_algo(
+            xSign, robot_cell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
+        )
+
+    return freeCells
