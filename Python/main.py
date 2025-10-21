@@ -37,7 +37,7 @@ def main(args=None):
     #############
     # ray_tracing debug
     startTime = timeit.default_timer() * 1000.0
-    freeCells = ray_tracing(
+    freeCells, endCell = ray_tracing(
         RobotPosition(X=7.78, Y=9.32, Theta=155.0),
         LidarData(alpha=200.0, length=100.0),
         n=15,
@@ -50,6 +50,10 @@ def main(args=None):
     print("The free cells are:")
     for cell in freeCells:
         print(f"({cell.row}, {cell.column})", end=" ")
+
+    print()
+
+    print(f"The last occupied cell: ({endCell.row}, {endCell.column})")
 
     print()
 

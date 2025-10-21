@@ -155,8 +155,6 @@ def x_step_algo(
         # previous cell row update
         previousCellRow = cellRight.row if xSign == 1 else cellLeft.row
 
-    freeCells.append(endCell)
-
 
 def y_step_algo(
     ySign: int,
@@ -219,8 +217,6 @@ def y_step_algo(
         # previous cell column update
         previousCellColumn = cellUp.column if ySign == 1 else cellDown.column
 
-    freeCells.append(endCell)
-
 
 def ray_tracing(
     robot_pos: RobotPosition,
@@ -240,8 +236,9 @@ def ray_tracing(
     * m: int -> number of columns in the grid
     * w: float -> the width of a single cell in the grid
     ---
-    Output:
+    Outputs:
     * freeCells: list -> a list of Cell objects representing the free cells along the lidar beam path
+    * endCell: Cell -> the cell where the lidar beam ends, which is the occupied cell
     """
 
     # initial data
@@ -289,4 +286,4 @@ def ray_tracing(
             xSign, robotCell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
         )
 
-    return freeCells
+    return freeCells, endCell
