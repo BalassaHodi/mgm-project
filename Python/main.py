@@ -9,6 +9,7 @@ import timeit
 from determine_cell_index import determine_cell_index
 from ray_tracing import ray_tracing
 from read_json import read_json
+from grid_map import grid_map
 
 from classes.robot_position import RobotPosition
 from classes.cell import Cell
@@ -144,65 +145,92 @@ def main(args=None):
 
     #############
     # debug ray_tracing with real data from json
-    print("ray_tracing debug with real data after coordinate translation:")
-    print(f"The number of data items to process: {len(lidarDataList)} \n")
+    # print("ray_tracing debug with real data after coordinate translation:")
+    # print(f"The number of data items to process: {len(lidarDataList)} \n")
 
-    # lidarDataList = read_json()
-    runtimes = []
-    for dataNumber in range(len(lidarDataList)):
-        print(f"Processing data item number: {dataNumber + 1}")
-        robotPosition = lidarDataList[dataNumber]["robot_position"]
+    # # lidarDataList = read_json()
+    # runtimes = []
+    # for dataNumber in range(len(lidarDataList)):
+    #     print(f"Processing data item number: {dataNumber + 1}")
+    #     robotPosition = lidarDataList[dataNumber]["robot_position"]
 
-        # the json file contains X-Y coordinates that are negative or too small (so probably the coordinate system is not set to the left-bottom corner)
-        # that's why the coordinates are modified here for testing purpose (in order not the get an error)
-        # now we translated the origin of the coordinate system by (-absoluteMinX, -absoluteMinY) in the previous section, so we add (abs(absoluteMinX), abs(absoluteMinY)) to the robot position
-        robotPosition.X += abs(absoluteMinX)
-        robotPosition.Y += abs(absoluteMinY)
+    #     # the json file contains X-Y coordinates that are negative or too small (so probably the coordinate system is not set to the left-bottom corner)
+    #     # that's why the coordinates are modified here for testing purpose (in order not the get an error)
+    #     # now we translated the origin of the coordinate system by (-absoluteMinX, -absoluteMinY) in the previous section, so we add (abs(absoluteMinX), abs(absoluteMinY)) to the robot position
+    #     robotPosition.X += abs(absoluteMinX)
+    #     robotPosition.Y += abs(absoluteMinY)
 
-        print(
-            f"Robot position: X={robotPosition.X}, Y={robotPosition.Y}, Theta={robotPosition.Theta}"
-        )
+    #     print(
+    #         f"Robot position: X={robotPosition.X}, Y={robotPosition.Y}, Theta={robotPosition.Theta}"
+    #     )
 
-        startTime = timeit.default_timer() * 1000.0
+    #     startTime = timeit.default_timer() * 1000.0
 
-        for i in range(len(lidarDataList[dataNumber]["scans"])):
-            lidarData = lidarDataList[dataNumber]["scans"][i]
+    #     for i in range(len(lidarDataList[dataNumber]["scans"])):
+    #         lidarData = lidarDataList[dataNumber]["scans"][i]
 
-            # here the n, m, w values are set for testing purpose, they should be determined according to the grid map
-            freeCells, endCell = ray_tracing(
-                robotPosition, lidarData, n=gridMapRows, m=gridMapColumns, w=cellWidth
-            )
+    #         # here the n, m, w values are set for testing purpose, they should be determined according to the grid map
+    #         freeCells, endCell = ray_tracing(
+    #             robotPosition, lidarData, n=gridMapRows, m=gridMapColumns, w=cellWidth
+    #         )
 
-            # # this part is commented out to measure only the runtime of the ray tracing function
-            # print("The free cells are:")
-            # for cell in freeCells:
-            #     print(f"({cell.row}, {cell.column})", end=" ")
-            # print()
-            # print(f"The last occupied cell: ({endCell.row}, {endCell.column})")
-            # print()
-            # print("The total number of free cells:", len(freeCells))
-            # print()
+    #         # # this part is commented out to measure only the runtime of the ray tracing function
+    #         # print("The free cells are:")
+    #         # for cell in freeCells:
+    #         #     print(f"({cell.row}, {cell.column})", end=" ")
+    #         # print()
+    #         # print(f"The last occupied cell: ({endCell.row}, {endCell.column})")
+    #         # print()
+    #         # print("The total number of free cells:", len(freeCells))
+    #         # print()
 
-        stopTime = timeit.default_timer() * 1000.0
+    #     stopTime = timeit.default_timer() * 1000.0
 
-        print(
-            f"The runtime of the ray tracing code for {len(lidarDataList[dataNumber]['scans'])} data: {stopTime - startTime} ms."
-        )
+    #     print(
+    #         f"The runtime of the ray tracing code for {len(lidarDataList[dataNumber]['scans'])} data: {stopTime - startTime} ms."
+    #     )
 
-        runtimes.append(stopTime - startTime)
+    #     runtimes.append(stopTime - startTime)
 
-        print()
+    #     print()
 
-    averageRuntime = sum(runtimes) / len(runtimes)
-    maxRuntime = max(runtimes)
-    minRuntime = min(runtimes)
+    # averageRuntime = sum(runtimes) / len(runtimes)
+    # maxRuntime = max(runtimes)
+    # minRuntime = min(runtimes)
 
+    # print(
+    #     f"Average runtime: {averageRuntime} ms; Max runtime: {maxRuntime} ms; Min runtime: {minRuntime} ms."
+    # )
+
+    # print()
+    #############
+
+    ############
+    # debug grid_map with animation
+    # Call the animated grid map function to visualize the robot moving through all positions
+    from grid_map import grid_map_animated
+
+    # Use every 10th position to speed up the animation
+    step = 10
+    lidarDataList_sampled = lidarDataList[::step]
+
+    print("Creating animated occupancy grid map...")
+    print(f"Total number of positions available: {len(lidarDataList)}")
     print(
-        f"Average runtime: {averageRuntime} ms; Max runtime: {maxRuntime} ms; Min runtime: {minRuntime} ms."
+        f"Using every {step}th position for animation: {len(lidarDataList_sampled)} frames"
     )
 
-    print()
-    #############
+    grid_map_animated(
+        n=gridMapRows,
+        m=gridMapColumns,
+        w=cellWidth,
+        lidarDataList=lidarDataList_sampled,
+        absoluteMinX=absoluteMinX,
+        absoluteMinY=absoluteMinY,
+        ray_tracing_func=ray_tracing,
+        interval=10,  # 10ms between frames for faster animation (was 50ms)
+    )
+    ############
 
 
 if __name__ == "__main__":
