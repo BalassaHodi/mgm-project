@@ -51,14 +51,17 @@ HERE = Path(__file__).resolve().parent
 DATA_PATH = HERE / "data" / "real_data.json"
 
 
-def read_json(filePath=DATA_PATH) -> list[dict[RobotPosition, list[LidarData]]]:
+def read_json(
+    filePath=DATA_PATH, printPath=False
+) -> list[dict[RobotPosition, list[LidarData]]]:
     """
     This function reads the specified json file and returns the data in a structured format. \n
     ---
     The output: \n
     A list of dictionaries, where each dictionary contains a RobotPosition and a list of LidarData.
     """
-    print(f"Reading the json file from: {filePath}")
+    if printPath:
+        print(f"Reading the json file from: {filePath} \n")
 
     with open(filePath, "r", encoding="utf-8") as jsonFile:
         rawJsonData = json.load(jsonFile)

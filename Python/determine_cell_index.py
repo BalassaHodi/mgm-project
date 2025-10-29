@@ -37,7 +37,7 @@ def determine_cell_index(X: float, Y: float, n: int, m: int, w: float):
             break
 
     if row == 0 or column == 0:
-        print("\033[31mThe coordinates are out of the border.\033[0m")
+        print(f"\033[31mThe coordinates ({X}, {Y}) are out of the border.\033[0m")
         return Cell(0, 0)
 
     return Cell(row, column)
