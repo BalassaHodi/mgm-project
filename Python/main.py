@@ -106,7 +106,7 @@ def main(args=None):
             )
             minLidarLength = (
                 lidarData.length
-                if minLidarLength > lidarData.length
+                if minLidarLength > lidarData.length and lidarData.length > 0.0
                 else minLidarLength
             )
     print(
@@ -237,7 +237,8 @@ def main(args=None):
                 robotPosition, lidarData, n=gridMapRows, m=gridMapColumns, w=cellWidth
             )
             freeCellsList.extend(freeCells)
-            occupiedCellsList.append(endCell)
+            if endCell != None:
+                occupiedCellsList.append(endCell)
 
         all_free_cells_list.append(freeCellsList)
         all_occupied_cells_list.append(occupiedCellsList)
@@ -251,6 +252,7 @@ def main(args=None):
 
     print("\nCreating animated occupancy grid map...")
 
+    numSim = int(input("Enter the number of the simulation: "))
     grid_map_animated(
         n=gridMapRows,
         m=gridMapColumns,
@@ -259,6 +261,8 @@ def main(args=None):
         all_occupied_cells_list=all_occupied_cells_list,
         robot_positions_list=robot_positions_list,
         interval=10,  # 10ms between frames for faster animation
+        save_frames=True,  # Control whether to save frame images
+        numSim=numSim,
     )
     ############
 

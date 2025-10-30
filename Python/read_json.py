@@ -84,7 +84,9 @@ def read_json(
         for i in range(len(scan)):
             # the scan that doesn't produce length is left behind, so that there are no unnecessary data in the output
             if scan[i] == 0.0:
-                lidarData = LidarData(alpha=i, length=4.2)  # max range of the lidar
+                lidarData = LidarData(
+                    alpha=i, length=-1.0
+                )  # length -1.0 means no detection
             else:
                 lidarData = LidarData(alpha=i, length=scan[i])
             scans.append(lidarData)

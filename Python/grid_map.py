@@ -183,6 +183,7 @@ def grid_map_animated(
     prob_occupied_given_free: float = 0.3,
     save_frames: bool = True,
     output_dir: str = None,
+    numSim: int = 0,
 ):
     """
     Creates an animated grid map visualization with probability-based occupancy updates.
@@ -391,7 +392,9 @@ def grid_map_animated(
 
         # Save frame as image
         if save_frames:
-            filename = os.path.join(output_dir, f"real_data_sim_{frame+1:03d}.png")
+            filename = os.path.join(
+                output_dir, f"real_data_sim_{numSim}_frame_{frame+1}.png"
+            )
             fig.savefig(filename, dpi=150, bbox_inches="tight")
             if (frame + 1) % 10 == 0:
                 print(f"Saved frame {frame + 1}/{num_frames}")
