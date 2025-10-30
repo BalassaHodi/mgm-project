@@ -206,29 +206,59 @@ def main(args=None):
     #############
 
     ############
-    # debug grid_map with animation
-    # Call the animated grid map function to visualize the robot moving through all positions
-    from grid_map import grid_map_animated
+    # Pre-compute ray tracing for all positions
+    print("Pre-computing ray tracing for all positions...")
+    print(f"Total number of positions: {len(lidarDataList)}")
 
     # Use every 10th position to speed up the animation
     step = 10
-    lidarDataList_sampled = lidarDataList[::step]
 
-    print("Creating animated occupancy grid map...")
-    print(f"Total number of positions available: {len(lidarDataList)}")
-    print(
-        f"Using every {step}th position for animation: {len(lidarDataList_sampled)} frames"
-    )
+    all_free_cells_list = []  # List of lists of free cells for each position
+    all_occupied_cells_list = []  # List of lists of occupied cells for each position
+    robot_positions_list = []  # List of robot positions
+
+    startTime = timeit.default_timer() * 1000.0
+
+    for dataNumber in range(0, len(lidarDataList), step):
+        if dataNumber % 100 == 0:
+            print(f"Processing position {dataNumber}/{len(lidarDataList)}...")
+
+        robotPosition = lidarDataList[dataNumber]["robot_position"]
+        robotPosition.X += abs(absoluteMinX)
+        robotPosition.Y += abs(absoluteMinY)
+        robot_positions_list.append(robotPosition)
+
+        freeCellsList = []
+        occupiedCellsList = []
+
+        for i in range(len(lidarDataList[dataNumber]["scans"])):
+            lidarData = lidarDataList[dataNumber]["scans"][i]
+            freeCells, endCell = ray_tracing(
+                robotPosition, lidarData, n=gridMapRows, m=gridMapColumns, w=cellWidth
+            )
+            freeCellsList.extend(freeCells)
+            occupiedCellsList.append(endCell)
+
+        all_free_cells_list.append(freeCellsList)
+        all_occupied_cells_list.append(occupiedCellsList)
+
+    stopTime = timeit.default_timer() * 1000.0
+    print(f"Ray tracing completed in {stopTime - startTime:.2f} ms")
+    print(f"Total frames to animate: {len(all_free_cells_list)}")
+
+    # Now call the animated grid map function with pre-computed data
+    from grid_map import grid_map_animated
+
+    print("\nCreating animated occupancy grid map...")
 
     grid_map_animated(
         n=gridMapRows,
         m=gridMapColumns,
         w=cellWidth,
-        lidarDataList=lidarDataList_sampled,
-        absoluteMinX=absoluteMinX,
-        absoluteMinY=absoluteMinY,
-        ray_tracing_func=ray_tracing,
-        interval=10,  # 10ms between frames for faster animation (was 50ms)
+        all_free_cells_list=all_free_cells_list,
+        all_occupied_cells_list=all_occupied_cells_list,
+        robot_positions_list=robot_positions_list,
+        interval=10,  # 10ms between frames for faster animation
     )
     ############
 

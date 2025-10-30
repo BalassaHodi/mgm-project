@@ -14,6 +14,7 @@ from classes.cell import Cell
 from classes.robot_position import RobotPosition
 import math
 import numpy as np
+import os
 
 
 def grid_map(
@@ -174,13 +175,14 @@ def grid_map_animated(
     n: int,
     m: int,
     w: float,
-    lidarDataList: list,
-    absoluteMinX: float,
-    absoluteMinY: float,
-    ray_tracing_func,
+    all_free_cells_list: list,
+    all_occupied_cells_list: list,
+    robot_positions_list: list,
     interval: int = 50,
     prob_occupied_given_occupied: float = 0.9,
     prob_occupied_given_free: float = 0.3,
+    save_frames: bool = True,
+    output_dir: str = None,
 ):
     """
     Creates an animated grid map visualization with probability-based occupancy updates.
@@ -194,26 +196,38 @@ def grid_map_animated(
         Number of columns in the grid map
     w : float
         Width (and height) of each cell in the grid
-    lidarDataList : list
-        List of dictionaries containing robot_position and scans data
-    absoluteMinX : float
-        Absolute minimum X coordinate for coordinate translation
-    absoluteMinY : float
-        Absolute minimum Y coordinate for coordinate translation
-    ray_tracing_func : function
-        The ray_tracing function to use for processing lidar data
+    all_free_cells_list : list
+        List of lists of free cells for each frame
+    all_occupied_cells_list : list
+        List of lists of occupied cells for each frame
+    robot_positions_list : list
+        List of RobotPosition objects for each frame
     interval : int, optional
         Time interval between frames in milliseconds (default: 50ms)
     prob_occupied_given_occupied : float, optional
         Probability that a cell is occupied when measured as occupied (default: 0.9)
     prob_occupied_given_free : float, optional
         Probability that a cell is occupied when measured as free (default: 0.3)
+    save_frames : bool, optional
+        Whether to save each frame as an image (default: True)
+    output_dir : str, optional
+        Directory to save frames. If None, saves in current directory
 
     Returns:
     --------
     fig, ax, anim : tuple
         The matplotlib figure, axes, and animation objects
     """
+
+    # Create output directory for frames if saving is enabled
+    if save_frames:
+        if output_dir is None:
+            output_dir = (
+                r"D:\_Dokumentumok\BME\2025-26 I\Mobil Gépek Mechatronikája\Képek"
+            )
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        print(f"Frames will be saved to: {output_dir}")
 
     # Initialize occupancy grid with log-odds values
     # 0 = unknown (probability 0.5), positive = more likely occupied, negative = more likely free
@@ -230,6 +244,8 @@ def grid_map_animated(
     occupied_threshold = 0.7  # Above this probability, show as occupied (black)
     free_threshold = 0.3  # Below this probability, show as free (white)
 
+    num_frames = len(all_free_cells_list)
+
     # Create figure and axis
     fig, ax = plt.subplots(figsize=(12, 10))
 
@@ -244,7 +260,7 @@ def grid_map_animated(
     ax.set_xlabel("X (meters)", fontsize=12)
     ax.set_ylabel("Y (meters)", fontsize=12)
     title = ax.set_title(
-        f"Occupancy Grid Map (Probabilistic) - Frame 0/{len(lidarDataList)}",
+        f"Occupancy Grid Map (Probabilistic) - Frame 0/{num_frames}",
         fontsize=14,
     )
 
@@ -335,26 +351,25 @@ def grid_map_animated(
 
     def update(frame):
         """Update function for animation"""
-        # Get robot position for this frame
-        robotPosition = lidarDataList[frame]["robot_position"]
-        robotPosition.X += abs(absoluteMinX)
-        robotPosition.Y += abs(absoluteMinY)
+        # Get pre-computed data for this frame
+        robotPosition = robot_positions_list[frame]
+        freeCells = all_free_cells_list[frame]
+        occupiedCells = all_occupied_cells_list[frame]
 
-        # Process all scans for this position
-        for i in range(len(lidarDataList[frame]["scans"])):
-            lidarData = lidarDataList[frame]["scans"][i]
-            freeCells, endCell = ray_tracing_func(
-                robotPosition, lidarData, n=n, m=m, w=w
-            )
+        # Track which cells were updated for return value
+        updated_cells = []
 
-            # Update log-odds for free cells
-            for cell in freeCells:
-                log_odds_grid[cell.row, cell.column] += log_odds_free
-                update_cell_color(cell.row, cell.column)
+        # Update log-odds for free cells
+        for cell in freeCells:
+            log_odds_grid[cell.row, cell.column] += log_odds_free
+            update_cell_color(cell.row, cell.column)
+            updated_cells.append(cell_patches[(cell.row, cell.column)])
 
-            # Update log-odds for occupied cell
-            log_odds_grid[endCell.row, endCell.column] += log_odds_occupied
-            update_cell_color(endCell.row, endCell.column)
+        # Update log-odds for occupied cells
+        for cell in occupiedCells:
+            log_odds_grid[cell.row, cell.column] += log_odds_occupied
+            update_cell_color(cell.row, cell.column)
+            updated_cells.append(cell_patches[(cell.row, cell.column)])
 
         # Update robot position
         robot_circle.center = (robotPosition.X, robotPosition.Y)
@@ -371,13 +386,21 @@ def grid_map_animated(
 
         # Update title
         title.set_text(
-            f"Occupancy Grid Map (Probabilistic) - Frame {frame + 1}/{len(lidarDataList)} | Position: ({robotPosition.X:.2f}, {robotPosition.Y:.2f})"
+            f"Occupancy Grid Map (Probabilistic) - Frame {frame + 1}/{num_frames} | Position: ({robotPosition.X:.2f}, {robotPosition.Y:.2f})"
         )
 
-        return [robot_circle, orientation_line, title] + list(cell_patches.values())
+        # Save frame as image
+        if save_frames:
+            filename = os.path.join(output_dir, f"real_data_sim_{frame+1:03d}.png")
+            fig.savefig(filename, dpi=150, bbox_inches="tight")
+            if (frame + 1) % 10 == 0:
+                print(f"Saved frame {frame + 1}/{num_frames}")
+
+        # Only return changed objects instead of all cell patches
+        return [robot_circle, orientation_line, title] + updated_cells
 
     # Create animation
-    print(f"Creating probabilistic animation with {len(lidarDataList)} frames...")
+    print(f"Creating probabilistic animation with {num_frames} frames...")
     print(f"Using Bayesian occupancy grid mapping:")
     print(f"  - P(occupied | measured occupied) = {prob_occupied_given_occupied}")
     print(f"  - P(occupied | measured free) = {prob_occupied_given_free}")
@@ -388,10 +411,10 @@ def grid_map_animated(
         fig,
         update,
         init_func=init,
-        frames=len(lidarDataList),
+        frames=num_frames,
         interval=interval,
-        blit=False,
-        repeat=True,
+        blit=False,  # Disable blit to keep all cells visible
+        repeat=False,  # Don't repeat the animation
     )
 
     plt.tight_layout()
