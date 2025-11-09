@@ -261,8 +261,14 @@ def ray_tracing(
     Alpha = Theta + alpha if Theta + alpha < 360 else Theta + alpha - 360
 
     # calculate end cell
-    endCoordinates = calc_coordinates(X, Y, Alpha, l)
-    endCell = determine_cell_index(endCoordinates.x, endCoordinates.y, n, m, w)
+    if l == -1.0:
+        endCoordinates = calc_coordinates(
+            X, Y, Alpha, l=4.2
+        )  # where l=4.2 is the maximum range of the lidar
+        endCell = determine_cell_index(endCoordinates.x, endCoordinates.y, n, m, w)
+    else:
+        endCoordinates = calc_coordinates(X, Y, Alpha, l)
+        endCell = determine_cell_index(endCoordinates.x, endCoordinates.y, n, m, w)
 
     # check which algorithm shall we do
     if 45 < Alpha < 135:
@@ -285,5 +291,9 @@ def ray_tracing(
         x_step_algo(
             xSign, robotCell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
         )
+
+    if l == -1.0:
+        freeCells.append(endCell)
+        endCell = None  # the lidar didn't detect any obstacle
 
     return freeCells, endCell
