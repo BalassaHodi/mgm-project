@@ -1,0 +1,6 @@
+<launch>
+
+    <!-- CUSTOM NODES -->
+    <node pkg="occupancy_grid_mapper" exec="test_node" name="test_node" output="screen" />
+
+</launch>

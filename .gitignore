@@ -1,3 +1,5 @@
 # These are the files that github shall ignore
 __pycache__
 test.py
+log
+.vscode
