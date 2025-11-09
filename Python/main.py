@@ -261,7 +261,7 @@ def main(args=None):
         all_occupied_cells_list=all_occupied_cells_list,
         robot_positions_list=robot_positions_list,
         interval=10,  # 10ms between frames for faster animation
-        save_frames=True,  # Control whether to save frame images
+        save_frames=False,  # Control whether to save frame images
         numSim=numSim,
     )
     ############
