@@ -61,7 +61,7 @@ class OccupancyGridMap:
         self._gridRows = int(self._mapHeight / self._resolution)
 
         # Initialize grid map with probablity values of 50 (unknown)
-        self.gridMap = np.full((self._gridRows, self._gridCols), 50.0)
+        self.gridMap = np.full((self._gridRows, self._gridCols), 0.5)
 
         # Initialize grid map with log-odds values of 0
         self._logOddsMap = np.zeros((self._gridRows, self._gridCols), dtype=float)
@@ -346,7 +346,7 @@ class OccupancyGridMap:
         # local function
         def log_odds_to_prob(logOdds: float):
             """Convert log-odds value to probability"""
-            return (1.0 - 1.0 / (1.0 + np.exp(logOdds))) * 100.0
+            return (1.0 - 1.0 / (1.0 + np.exp(logOdds)))
 
         # Define values for log-odds updates
         probOccGivenOcc = 0.9
