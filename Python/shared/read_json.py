@@ -44,8 +44,8 @@ import json
 from pathlib import Path
 import math
 
-from classes.robot_position import RobotPosition
-from classes.lidar_sensor_data import LidarData
+from .classes.robot_position import RobotPosition
+from .classes.lidar_sensor_data import LidarData
 
 HERE = Path(__file__).resolve().parent
 DATA_PATH = HERE / "data" / "real_data.json"

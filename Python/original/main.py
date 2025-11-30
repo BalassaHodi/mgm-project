@@ -3,17 +3,22 @@ This is the main function for debugging and testing.
 The functions are determined in the other files in the folder.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import math
 import timeit
 
 from determine_cell_index import determine_cell_index
 from ray_tracing import ray_tracing
-from read_json import read_json
+from shared.read_json import read_json
 from grid_map import grid_map
 
-from classes.robot_position import RobotPosition
-from classes.cell import Cell
-from classes.lidar_sensor_data import LidarData
+from shared.classes.robot_position import RobotPosition
+from shared.classes.cell import Cell
+from shared.classes.lidar_sensor_data import LidarData
 
 
 def main(args=None):

@@ -7,11 +7,16 @@ The grid map displays:
 - Robot position as a red circle
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.animation as animation
-from classes.cell import Cell
-from classes.robot_position import RobotPosition
+from shared.classes.cell import Cell
+from shared.classes.robot_position import RobotPosition
 import math
 import numpy as np
 import os

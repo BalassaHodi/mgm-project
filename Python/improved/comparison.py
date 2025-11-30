@@ -5,8 +5,13 @@ This script demonstrates the key differences and shows how the improved version
 handles dynamic coordinates and grid expansion.
 """
 
-from read_json import read_json
-from classes.robot_position import RobotPosition
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from shared.read_json import read_json
+from shared.classes.robot_position import RobotPosition
 import math
 
 

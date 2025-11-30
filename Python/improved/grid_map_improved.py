@@ -5,10 +5,15 @@ This module contains the OccupancyGridMapper class for managing a dynamic occupa
 with probabilistic updates. The grid automatically expands as the robot explores new areas.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import numpy as np
 import math
-from classes.cell import Cell
-from classes.robot_position import RobotPosition
+from shared.classes.cell import Cell
+from shared.classes.robot_position import RobotPosition
 
 
 class OccupancyGridMapper:

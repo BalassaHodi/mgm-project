@@ -8,17 +8,24 @@ This version:
 - Provides a function to get the probability matrix output
 """
 
+import sys
+import os
+from pathlib import Path
+
+# Add parent directory to path to access shared module
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import math
 import timeit
 import numpy as np
 
 from ray_tracing_improved import ray_tracing_improved
-from read_json import read_json
+from shared.read_json import read_json
 from grid_map_improved import OccupancyGridMapper
 
-from classes.robot_position import RobotPosition
-from classes.cell import Cell
-from classes.lidar_sensor_data import LidarData
+from shared.classes.robot_position import RobotPosition
+from shared.classes.cell import Cell
+from shared.classes.lidar_sensor_data import LidarData
 
 
 def process_lidar_data_improved(

@@ -6,7 +6,12 @@ in a dynamically sized grid map that can have negative coordinates.
 Note that the algorithm is a self-developed work, so it might not be the most efficient one.
 """
 
-from classes.cell import Cell
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from shared.classes.cell import Cell
 
 
 def determine_cell_index_improved(
