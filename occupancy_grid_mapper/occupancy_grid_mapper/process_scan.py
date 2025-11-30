@@ -64,7 +64,7 @@ class ProcessScan(Node):
         grid.info.height = self.ogm._gridRows
         grid.info.origin.position.x = -(self.ogm._mapWidth/2) #bal alsó sarok (reméljük)
         grid.info.origin.position.y = -(self.ogm._mapHeight/2) #same in english
-        grid.info.origin.position.z = 0
+        grid.info.origin.position.z = 0.0
         grid.info.origin.orientation.w = 1.0 #asszem
         
         grid.data = self.ogm.gridMap.astype(np.int8).flatten(order="C").tolist()
