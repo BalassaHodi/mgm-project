@@ -44,10 +44,8 @@ class OccupancyGridMap:
     - mapHeight: height of the grid map in meters
     - resolution: size of each grid cell in meters (default: 0.1m)
     ---
-    Methods:
-    - trace_ray: traces a ray from the robot's position to a laser hit point
-    - process_scan: processes a laser scan by tracing the ray and updating the map
-    - update_map: updates the occupancy grid map based on the traced ray
+    Methods (public):
+    - process_scan(robot_pose, lidar_data): Process a laser scan and update the occupancy grid map
     ---
     Attributes (public):
     - gridMap: 2D numpy array representing the occupancy grid map
@@ -371,3 +369,7 @@ class OccupancyGridMap:
 
         # trace the ray and update the map
         self._trace_ray(robot_pose, lidar_data)
+
+    def _visualize_map(self):
+        """Visualize the occupancy grid map using matplotlib (for debugging purposes)."""
+        pass
