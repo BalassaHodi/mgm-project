@@ -45,9 +45,9 @@ class GetExtremeValuesNode(Node):
         ]
 
         if self.prev_vals != act_vals:
-            self.get_logger().info(
-                f"Max: [{self.max_point.x:.2f}, {self.max_point.y:.2f}]\tMin: [{self.min_point.x:.2f}, {self.min_point.y:.2f}]"
-            )
+            # self.get_logger().info(
+            #     f"Max: [{self.max_point.x:.2f}, {self.max_point.y:.2f}]\tMin: [{self.min_point.x:.2f}, {self.min_point.y:.2f}]"
+            # )
 
             self.prev_vals = [
                 self.max_point.x,

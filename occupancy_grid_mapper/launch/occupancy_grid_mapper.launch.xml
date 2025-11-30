@@ -15,8 +15,9 @@
     </node>
 
     <!-- GetExtremeValuesNode -->
-    <node pkg="occupancy_grid_mapper" exec="get_extreme_values" name="get_ext_val" output="screen">
+    <!-- <node pkg="occupancy_grid_mapper" exec="get_extreme_values" name="get_ext_val"
+    output="screen">
         <param name="use_sim_time" value="true" />
-    </node>
+    </node> -->
 
 </launch>
