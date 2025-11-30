@@ -21,12 +21,17 @@ NOTE:
 * Degree always increases from the positive x axis counter-clockwise
 """
 
-from classes.robot_position import RobotPosition
-from classes.cell import Cell
-from classes.lidar_sensor_data import LidarData
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from shared.classes.robot_position import RobotPosition
+from shared.classes.cell import Cell
+from shared.classes.lidar_sensor_data import LidarData
 from determine_cell_index import determine_cell_index
-from calc_coordinates import calc_coordinates
-from classes.coordinates import Coordinates
+from shared.calc_coordinates import calc_coordinates
+from shared.classes.coordinates import Coordinates
 import math
 
 

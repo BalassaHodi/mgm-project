@@ -4,10 +4,15 @@ Simple example showing how to visualize your occupancy grid map.
 This demonstrates the different ways you can use the visualization functions.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import numpy as np
 from visualize_grid_map_improved import visualize_occupancy_grid, visualize_from_mapper
 from main_improved import process_lidar_data_improved
-from read_json import read_json
+from shared.read_json import read_json
 
 
 def example_1_visualize_from_mapper():

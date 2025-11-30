@@ -7,7 +7,12 @@ This script shows the minimal code needed to:
 3. Get the probability matrix output
 """
 
-from read_json import read_json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from shared.read_json import read_json
 from main_improved import process_lidar_data_improved
 import numpy as np
 
