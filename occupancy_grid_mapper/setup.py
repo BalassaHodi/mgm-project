@@ -29,6 +29,7 @@ setup(
         "console_scripts": [
             "test_node = occupancy_grid_mapper.test_node:main",
             "get_extreme_values = occupancy_grid_mapper.get_extreme_values:main",
+            "process_scan = occupancy_grid_mapper.process_scan:main"
         ],
     },
 )
