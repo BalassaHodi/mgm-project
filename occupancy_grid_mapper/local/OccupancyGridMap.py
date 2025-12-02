@@ -31,6 +31,7 @@ Usage:
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class OccupancyGridMap:
@@ -360,10 +361,12 @@ class OccupancyGridMap:
         if is_occupied:
             # update as occupied
             self._logOddsMap[row, col] += logOddsOcc
+            self._logOddsMap[row, col] = min(self._logOddsMap[row, col], 30.0)
             self.gridMap[row, col] = log_odds_to_prob(self._logOddsMap[row, col])
         else:
             # update as free
             self._logOddsMap[row, col] += logOddsFree
+            self._logOddsMap[row, col] = max(self._logOddsMap[row, col], -30.0)
             self.gridMap[row, col] = log_odds_to_prob(self._logOddsMap[row, col])
 
     def process_scan(self, robot_pose, lidar_data):
@@ -379,6 +382,95 @@ class OccupancyGridMap:
         # trace the ray and update the map
         self._trace_ray(robot_pose, lidar_data)
 
-    def _visualize_map(self):
-        """Visualize the occupancy grid map using matplotlib (for debugging purposes)."""
-        pass
+    def visualize_map(self, saveMap: bool = False, filePath: str = ""):
+        """Visualize the occupancy grid map using matplotlib."""
+
+        if saveMap and filePath == "":
+            return
+
+        plt.clf()
+
+        plt.imshow(
+            self.gridMap,
+            cmap="Greys",
+            origin="lower",
+            interpolation="none",
+            vmin=0,
+            vmax=100,
+            extent=[
+                -self._mapWidth / 2,
+                self._mapWidth / 2,
+                -self._mapHeight / 2,
+                self._mapHeight / 2,
+            ],
+        )
+
+        plt.colorbar(label="Occupancy Probability (%)")
+        plt.title("Occupancy Grid Map")
+        plt.xlabel("X (m)")
+        plt.ylabel("Y (m)")
+
+        if saveMap:
+            plt.savefig(filePath)
+            plt.close()
+            print(f"Occupancy grid map saved to {filePath}")
+        else:
+            plt.show()
+
+    def save_map(self, filePath: str):
+        """Save the occupancy grid map to a file specified by filePath."""
+
+        with open(filePath, "w") as f:
+            for row in self.gridMap:
+                row_str = " ".join(str(cell) for cell in row)
+                f.write(row_str + "\n")
+
+            print(f"Occupancy grid map saved to {filePath}")
+
+    def load_map(self, filePath: str):
+        """Load the occupancy grid map from a file specified by filePath."""
+
+        with open(filePath, "r") as f:
+            loaded_map = []
+            for line in f:
+                row = [int(cell) for cell in line.strip().split()]
+                loaded_map.append(row)
+
+            if (
+                len(loaded_map) != self._gridRows
+                or len(loaded_map[0]) != self._gridCols
+            ):
+                raise ValueError(
+                    "Loaded map dimensions do not match the initialized grid map dimensions."
+                    + f" The size of the loaded map is ({len(loaded_map)}, {len(loaded_map[0])}) but expected ({self._gridRows}, {self._gridCols})."
+                )
+
+            self.gridMap = np.array(loaded_map)
+
+        # update log-odds map based on loaded grid map
+        def prob_to_log_odds(prob: int):
+            """Convert probability value to log-odds."""
+            p = prob / 100.0
+            if p != 1 and p != 0:
+                return np.log(p / (1 - p))
+            elif p == 1:
+                return 30.0
+            else:
+                return -30.0
+
+        for row in range(self._gridRows):
+            for col in range(self._gridCols):
+                self._logOddsMap[row, col] = prob_to_log_odds(self.gridMap[row, col])
+
+
+# debug the OccupancyGridMap class
+if __name__ == "__main__":
+    # load data from a file and visualize the map
+    map = OccupancyGridMap(8.0, 8.0, 0.1)
+    map.load_map(
+        "/workspace/src/mgm-project/occupancy_grid_mapper/data/occupancy_grid_map.csv"
+    )
+    map.visualize_map(
+        saveMap=False,
+        filePath="/workspace/src/mgm-project/occupancy_grid_mapper/data/occupancy_grid_map.png",
+    )

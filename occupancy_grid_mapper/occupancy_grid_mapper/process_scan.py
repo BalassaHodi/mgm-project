@@ -82,16 +82,11 @@ class ProcessScanNode(Node):
         # publish the OccupancyGrid message
         self.gridmap_pub.publish(self.rosGridMap)
 
-        # save the occupancy grid map to a txt file
+        # save the occupancy grid map to a file for later purposes
         want_to_save = False  # change to True to save the map
+        file_path = "/workspace/src/mgm-project/occupancy_grid_mapper/data/occupancy_grid_map.csv"
         if want_to_save:
-            with open(
-                "/workspace/src/mgm-project/occupancy_grid_mapper/data/occupancy_grid_map.csv",
-                "w",
-            ) as f:
-                for row in self.localGridMap.gridMap:
-                    row_str = " ".join(str(cell) for cell in row)
-                    f.write(row_str + "\n")
+            self.localGridMap.save_map(file_path)
 
 
 def main(args=None):
