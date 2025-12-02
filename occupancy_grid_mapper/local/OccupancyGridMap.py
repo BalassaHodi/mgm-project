@@ -61,7 +61,7 @@ class OccupancyGridMap:
         self._gridRows = int(self._mapHeight / self._resolution)
 
         # Initialize grid map with probablity values of 50 (unknown)
-        self.gridMap = np.full((self._gridRows, self._gridCols), 50.0)
+        self.gridMap = np.full((self._gridRows, self._gridCols), 50, dtype=int)
 
         # Initialize grid map with log-odds values of 0
         self._logOddsMap = np.zeros((self._gridRows, self._gridCols), dtype=float)
@@ -263,6 +263,8 @@ class OccupancyGridMap:
 
         # determine cell indices for robot position
         robotRow, robotCol = self._world_to_grid(robotX, robotY)
+        if robotRow is None or robotCol is None:
+            return
 
         # global angle of the laser ray
         globalAngle = (
@@ -346,7 +348,7 @@ class OccupancyGridMap:
         # local function
         def log_odds_to_prob(logOdds: float):
             """Convert log-odds value to probability"""
-            return (1.0 - 1.0 / (1.0 + np.exp(logOdds))) * 100.0
+            return int((1.0 - 1.0 / (1.0 + np.exp(logOdds))) * 100)
 
         # Define values for log-odds updates
         probOccGivenOcc = 0.9
@@ -365,7 +367,14 @@ class OccupancyGridMap:
             self.gridMap[row, col] = log_odds_to_prob(self._logOddsMap[row, col])
 
     def process_scan(self, robot_pose, lidar_data):
-        """Process a laser scan by tracing the ray and updating the map."""
+        """
+        Process a laser scan by tracing the ray and updating the map.
+
+        ---
+        Inputs:
+        - robot_pose: array of robot pose [x, y, theta] in [m, m, degrees]
+        - lidar_data: array of lidar data [alpha, distance] in [degrees, m]
+        """
 
         # trace the ray and update the map
         self._trace_ray(robot_pose, lidar_data)
