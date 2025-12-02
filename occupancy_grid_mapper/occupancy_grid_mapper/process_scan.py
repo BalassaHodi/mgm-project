@@ -18,7 +18,7 @@ class ProcessScanNode(Node):
         self.get_logger().info("ProcessScanNode has been started.")
 
         # create the OccupancyGridMap object from the local module
-        self.localGridMap = OccupancyGridMap(16.0, 16.0, 0.1)
+        self.localGridMap = OccupancyGridMap(8.0, 8.0, 0.1)
 
         # create OccupancyGrid object from the ros message
         self.rosGridMap = OccupancyGrid()
