@@ -263,6 +263,8 @@ class OccupancyGridMap:
 
         # determine cell indices for robot position
         robotRow, robotCol = self._world_to_grid(robotX, robotY)
+        if robotRow is None or robotCol is None:
+            return
 
         # global angle of the laser ray
         globalAngle = (
