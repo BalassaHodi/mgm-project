@@ -61,7 +61,7 @@ class OccupancyGridMap:
         self._gridRows = int(self._mapHeight / self._resolution)
 
         # Initialize grid map with probablity values of 50 (unknown)
-        self.gridMap = np.full((self._gridRows, self._gridCols), 0.5)
+        self.gridMap = np.full((self._gridRows, self._gridCols), 50, dtype=int)
 
         # Initialize grid map with log-odds values of 0
         self._logOddsMap = np.zeros((self._gridRows, self._gridCols), dtype=float)
@@ -348,7 +348,7 @@ class OccupancyGridMap:
         # local function
         def log_odds_to_prob(logOdds: float):
             """Convert log-odds value to probability"""
-            return 1.0 - 1.0 / (1.0 + np.exp(logOdds))
+            return int((1.0 - 1.0 / (1.0 + np.exp(logOdds))) * 100)
 
         # Define values for log-odds updates
         probOccGivenOcc = 0.9
@@ -369,7 +369,7 @@ class OccupancyGridMap:
     def process_scan(self, robot_pose, lidar_data):
         """
         Process a laser scan by tracing the ray and updating the map.
-        
+
         ---
         Inputs:
         - robot_pose: array of robot pose [x, y, theta] in [m, m, degrees]
