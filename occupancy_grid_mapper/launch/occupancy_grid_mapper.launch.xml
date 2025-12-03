@@ -9,20 +9,8 @@
     </include>
 
     <!-- CUSTOM NODES -->
-    <!-- TestNode -->
-    <node pkg="occupancy_grid_mapper" exec="test_node" name="test_node" output="screen">
-        <param name="use_sim_time" value="true" />
-    </node>
-
     <!-- Scan process node  -->
     <node pkg="occupancy_grid_mapper" exec="process_scan" name="process_scan" output="screen">
         <param name="use_sim_time" value="true" />
     </node>
-
-    <!-- GetExtremeValuesNode -->
-    <!-- <node pkg="occupancy_grid_mapper" exec="get_extreme_values" name="get_ext_val"
-    output="screen">
-        <param name="use_sim_time" value="true" />
-    </node> -->
-
 </launch>
