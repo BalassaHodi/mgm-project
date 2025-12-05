@@ -91,13 +91,13 @@ A mentett térképről .png kép is alkotható, ehhez azonban először szüksé
 # debug the OccupancyGridMap class
 if __name__ == "__main__":
     # load data from a file and visualize the map
-    map = OccupancyGridMap(8.0, 8.0, 0.05)      # <-- ide ugyanazok az adatok kerüljenek, amik a mentett fájl térképére jellemzőek
+    map = OccupancyGridMap(8.0, 8.0, 0.05)          # <-- ide ugyanazok az adatok kerüljenek, amik a mentett fájl térképére jellemzőek
     map.load_map(
-        "<a_mentett_térkép_helyének_útvonala>"  # <-- ide a paraméterben magadott elérési út kell
+        "<a_mentett_térkép_helyének_útvonala>"      # <-- ide a paraméterben magadott elérési út kell
     )
     map.visualize_map(
-        saveMap=False,      # <-- ha menteni szeretnénk legyen "True"
-        filePath="<a_menteni_kívánt_kép_útvonala>",     # <-- a kép mentésének a helyének megadása
+        saveMap=False,                              # <-- ha menteni szeretnénk legyen "True"
+        filePath="<a_menteni_kívánt_kép_útvonala>", # <-- a kép mentésének a helyének megadása
     )
 
 ```
