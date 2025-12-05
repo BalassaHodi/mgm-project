@@ -17,8 +17,21 @@ class ProcessScanNode(Node):
         super().__init__("process_scan")
         self.get_logger().info("ProcessScanNode has been started.")
 
+        # get parameters
+        self.declare_parameter("want_to_save", False)
+        self.want_to_save = (
+            self.get_parameter("want_to_save").get_parameter_value().bool_value
+        )
+        self.declare_parameter(
+            "file_path",
+            "/workspace/src/mgm-project/occupancy_grid_mapper/data/occupancy_grid_map.csv",
+        )
+        self.file_path = (
+            self.get_parameter("file_path").get_parameter_value().string_value
+        )
+
         # create the OccupancyGridMap object from the local module
-        self.localGridMap = OccupancyGridMap(8.0, 8.0, 0.1)
+        self.localGridMap = OccupancyGridMap(8.0, 8.0, 0.05)
 
         # create OccupancyGrid object from the ros message
         self.rosGridMap = OccupancyGrid()
@@ -83,10 +96,15 @@ class ProcessScanNode(Node):
         self.gridmap_pub.publish(self.rosGridMap)
 
         # save the occupancy grid map to a file for later purposes
-        want_to_save = False  # change to True to save the map
-        file_path = "/workspace/src/mgm-project/occupancy_grid_mapper/data/occupancy_grid_map.csv"
-        if want_to_save:
-            self.localGridMap.save_map(file_path)
+        self.want_to_save = (
+            self.get_parameter("want_to_save").get_parameter_value().bool_value
+        )
+        self.file_path = (
+            self.get_parameter("file_path").get_parameter_value().string_value
+        )
+        if self.want_to_save:
+            self.localGridMap.save_map(self.file_path)
+            self.get_logger().info(f"Occupancy grid map saved to {self.file_path}")
 
 
 def main(args=None):

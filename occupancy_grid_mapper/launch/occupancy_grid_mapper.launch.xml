@@ -12,5 +12,8 @@
     <!-- Scan process node  -->
     <node pkg="occupancy_grid_mapper" exec="process_scan" name="process_scan" output="screen">
         <param name="use_sim_time" value="true" />
+        <param name="want_to_save" value="false" />
+        <param name="file_path"
+            value="/workspace/src/mgm-project/occupancy_grid_mapper/data/occupancy_grid_map.csv" />
     </node>
 </launch>

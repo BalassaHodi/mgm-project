@@ -466,7 +466,7 @@ class OccupancyGridMap:
 # debug the OccupancyGridMap class
 if __name__ == "__main__":
     # load data from a file and visualize the map
-    map = OccupancyGridMap(8.0, 8.0, 0.1)
+    map = OccupancyGridMap(8.0, 8.0, 0.05)
     map.load_map(
         "/workspace/src/mgm-project/occupancy_grid_mapper/data/occupancy_grid_map.csv"
     )
