@@ -161,9 +161,12 @@ class OccupancyGridMap:
                     if col != endCol - 1:
                         # update cell as free: cellRight
                         self._update_cell(cellRightRow, cellRightCol, is_occupied=False)
-                    elif col == endCol - 1 and cellRightRow != endRow:
-                        # update cell as free: cellRight
-                        self._update_cell(cellRightRow, cellRightCol, is_occupied=False)
+                    else:
+                        if cellRightRow != endRow:
+                            # update cell as free: cellRight
+                            self._update_cell(
+                                cellRightRow, cellRightCol, is_occupied=False
+                            )
 
                     if cellRightRow != prevRow:
                         # update cell as free: cellLeft
@@ -172,9 +175,12 @@ class OccupancyGridMap:
                     if col != endCol + 1:
                         # update cell as free: cellLeft
                         self._update_cell(cellLeftRow, cellLeftCol, is_occupied=False)
-                    elif col == endCol + 1 and cellLeftRow != endRow:
-                        # update cell as free: cellLeft
-                        self._update_cell(cellLeftRow, cellLeftCol, is_occupied=False)
+                    else:
+                        if cellLeftRow != endRow:
+                            # update cell as free: cellLeft
+                            self._update_cell(
+                                cellLeftRow, cellLeftCol, is_occupied=False
+                            )
 
                     if cellLeftRow != prevRow:
                         # update cell as free: cellRight
@@ -226,9 +232,10 @@ class OccupancyGridMap:
                     if row != endRow - 1:
                         # update cell as free: cellTop
                         self._update_cell(cellTopRow, cellTopCol, is_occupied=False)
-                    elif row == endRow - 1 and cellTopCol != endCol:
-                        # update cell as free: cellTop
-                        self._update_cell(cellTopRow, cellTopCol, is_occupied=False)
+                    else:
+                        if cellTopCol != endCol:
+                            # update cell as free: cellTop
+                            self._update_cell(cellTopRow, cellTopCol, is_occupied=False)
                     if cellTopCol != prevCol:
                         # update cell as free: cellBottom
                         self._update_cell(
@@ -240,11 +247,12 @@ class OccupancyGridMap:
                         self._update_cell(
                             cellBottomRow, cellBottomCol, is_occupied=False
                         )
-                    elif row == endRow + 1 and cellBottomCol != endCol:
-                        # update cell as free: cellBottom
-                        self._update_cell(
-                            cellBottomRow, cellBottomCol, is_occupied=False
-                        )
+                    else:
+                        if cellBottomCol != endCol:
+                            # update cell as free: cellBottom
+                            self._update_cell(
+                                cellBottomRow, cellBottomCol, is_occupied=False
+                            )
 
                     if cellBottomCol != prevCol:
                         # update cell as free: cellTop
