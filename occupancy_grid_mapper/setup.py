@@ -26,6 +26,6 @@ setup(
         ],
     },
     entry_points={
-        "console_scripts": ["test_node = occupancy_grid_mapper.test_node:main"],
+        "console_scripts": ["process_scan = occupancy_grid_mapper.process_scan:main"],
     },
 )

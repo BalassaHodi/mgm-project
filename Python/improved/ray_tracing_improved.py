@@ -1,32 +1,40 @@
 """
 Created by: Balassa Hodi
+Improved version that works with dynamic grid bounds and negative coordinates.
+
 This ray-tracing algorithm was developed by me, so it might not be the most efficient algorithm.
 
 How does it work?
-* Based on the global angle of the lidar beam there are 2 different algorihms:
+* Based on the global angle of the lidar beam there are 2 different algorithms:
     1. 315 <= Alpha or Alpha <= 45  or 135 <= Alpha <= 225    -->    X-step algorithm
     2. 45 < Alpha < 135 or 225 < Alpha < 315                  -->    Y-step algorithm
 * The algorithms:
     - The inputs:
         1. robot global position and orientation (X, Y, Theta)
         2. lidar beam local orientation and length (alpha, length)
-        3. grid map dimensions (n -> number of rows, m -> number of columns)
+        3. grid map bounds (min_x, min_y, max_x, max_y)
         4. cell width
     - Based on the inputs and the global angle of lidar beam the algorithm do the following:
-        1. X-step algo: for every x-step, we find the y value of the line, and the two horizontally neighbouring cells are free cells. If the point is at a corner, the 4 neighbouring cells are free cells.
+        1. X-step algo: for every x-step, we find the y value of the line, and the two horizontally neighbouring cells are free cells.
         2. Y-step algo: for every y-step, we find the x value of the line, and the two vertically neighbouring cells are free cells.
 
 NOTE:
 * alpha -> the angle of the lidar beam, that goes from 0...359
 * Degree always increases from the positive x axis counter-clockwise
+* This improved version handles negative coordinates and dynamic grid bounds
 """
 
-from classes.robot_position import RobotPosition
-from classes.cell import Cell
-from classes.lidar_sensor_data import LidarData
-from determine_cell_index import determine_cell_index
-from calc_coordinates import calc_coordinates
-from classes.coordinates import Coordinates
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from shared.classes.robot_position import RobotPosition
+from shared.classes.cell import Cell
+from shared.classes.lidar_sensor_data import LidarData
+from determine_cell_index_improved import determine_cell_index_improved
+from shared.calc_coordinates import calc_coordinates
+from shared.classes.coordinates import Coordinates
 import math
 
 
@@ -75,7 +83,7 @@ def get_xy_line_eq(
         return ((x2 - x1) * yk - y1 * x2 + y2 * x1) / (y2 - y1)
 
 
-def x_step_algo(
+def x_step_algo_improved(
     xSign: int,
     startCell: Cell,
     endCell: Cell,
@@ -83,10 +91,12 @@ def x_step_algo(
     robot_pos: RobotPosition,
     endCoordinates: Coordinates,
     freeCells: list,
-    n: int,
-    m: int,
+    min_x: float,
+    min_y: float,
 ):
     """
+    Improved version of x_step_algo that works with dynamic grid bounds.
+
     How does it work briefly?
     1. For every x-step, we find the y value of the line.
     2. The two horizontally neighbouring cells are free cells.
@@ -100,7 +110,6 @@ def x_step_algo(
         - calculate the y coordinate of the line at this x position
         - if the y coordinate indicates the same cell as the previous iteration, only the new cell in the x direction shall be added to the free cells
         - else determine the two horizontally neighbouring cells based on the calculated y coordinate
-        - if the point is at a corner, determine the 4 neighbouring cells NOTE: not implemented.
     """
 
     # define the start cell and the end cell indexes
@@ -114,8 +123,8 @@ def x_step_algo(
 
     # the loop
     for i in range(startCellColumn, endCellColumn, xSign):
-        # calculate the x coordinate of the current cell edge
-        x = i * w if xSign == 1 else (i - 1) * w
+        # calculate the x coordinate of the current cell edge in global coordinates
+        x = min_x + i * w if xSign == 1 else min_x + (i + 1) * w
 
         # calculate the y coordinate of the line at this x position
         y = get_xy_line_eq(
@@ -129,9 +138,7 @@ def x_step_algo(
         )
 
         # determine the two horizontally neighbouring cells based on the calculated y coordinate
-        cellLeft = determine_cell_index(
-            x, y, n, m, w
-        )  # NOTE: here I can make it more efficient by shrinking the search space (n and m)
+        cellLeft = determine_cell_index_improved(x, y, min_x, min_y, w)
         cellRight = Cell(cellLeft.row, cellLeft.column + 1)
 
         # add the free cells to the list
@@ -156,7 +163,7 @@ def x_step_algo(
         previousCellRow = cellRight.row if xSign == 1 else cellLeft.row
 
 
-def y_step_algo(
+def y_step_algo_improved(
     ySign: int,
     startCell: Cell,
     endCell: Cell,
@@ -164,11 +171,12 @@ def y_step_algo(
     robot_pos: RobotPosition,
     endCoordinates: Coordinates,
     freeCells: list,
-    n: int,
-    m: int,
+    min_x: float,
+    min_y: float,
 ):
     """
-    Same as x_step_algo, but in the y direction.
+    Improved version of y_step_algo that works with dynamic grid bounds.
+    Same as x_step_algo_improved, but in the y direction.
     """
     # define the start cell and the end cell indexes
     startCellColumn = startCell.column
@@ -182,18 +190,16 @@ def y_step_algo(
     # the loop
     for i in range(startCellRow, endCellRow, ySign):
 
-        # calculate the y coordinate of the current cell edge
-        y = i * w if ySign == 1 else (i - 1) * w
+        # calculate the y coordinate of the current cell edge in global coordinates
+        y = min_y + i * w if ySign == 1 else min_y + (i + 1) * w
 
-        # calculate the y coordinate of the line at this x position
+        # calculate the x coordinate of the line at this y position
         x = get_xy_line_eq(
             robot_pos.X, robot_pos.Y, endCoordinates.x, endCoordinates.y, 0, y, "x"
         )
 
         # determine the two vertically neighbouring cells based on the calculated x coordinate
-        cellDown = determine_cell_index(
-            x, y, n, m, w
-        )  # NOTE: here I can make it more efficient by shrinking the search space (n and m)
+        cellDown = determine_cell_index_improved(x, y, min_x, min_y, w)
         cellUp = Cell(cellDown.row + 1, cellDown.column)
 
         # add the free cells to the list
@@ -218,82 +224,133 @@ def y_step_algo(
         previousCellColumn = cellUp.column if ySign == 1 else cellDown.column
 
 
-def ray_tracing(
+def ray_tracing_improved(
     robot_pos: RobotPosition,
     lidar_data: LidarData,
-    n: int,
-    m: int,
     w: float,
+    min_x: float,
+    min_y: float,
+    max_range: float = 4.2,
 ):
     """
-    This function performs ray tracing to determine those cells that are free along the path of a lidar beam. \n
-    The first cell is where the robot is located, and the last cell is where the lidar beam ends. \n
-    ---
-    Inputs:
-    * robot_pos: RobotPosition -> the global position and orientation of the robot (X, Y, Theta: [0...359])
-    * lidar_data: LidarData -> the local orientation and length of the lidar beam (alpha, length)
-    * n: int -> number of rows in the grid
-    * m: int -> number of columns in the grid
-    * w: float -> the width of a single cell in the grid
-    ---
-    Outputs:
-    * freeCells: list -> a list of Cell objects representing the free cells along the lidar beam path
-    * endCell: Cell -> the cell where the lidar beam ends, which is the occupied cell
+    Improved version of ray tracing that works with dynamic grid bounds and negative coordinates.
+
+    This function performs ray tracing to determine those cells that are free along the path of a lidar beam.
+    The first cell is where the robot is located, and the last cell is where the lidar beam ends.
+
+    Parameters:
+    -----------
+    robot_pos : RobotPosition
+        The global position and orientation of the robot (X, Y, Theta: [0...359])
+    lidar_data : LidarData
+        The local orientation and length of the lidar beam (alpha, length)
+    w : float
+        The width of a single cell in the grid
+    min_x : float
+        Minimum X coordinate of the current grid
+    min_y : float
+        Minimum Y coordinate of the current grid
+    max_range : float, optional
+        Maximum range of the lidar sensor (default: 4.2 meters)
+
+    Returns:
+    --------
+    freeCells : list
+        A list of Cell objects representing the free cells along the lidar beam path
+    endCell : Cell or None
+        The cell where the lidar beam ends (occupied cell), or None if no obstacle detected
     """
 
     # initial data
     X = robot_pos.X
     Y = robot_pos.Y
     Theta = robot_pos.Theta  # in degree
-    n = n
-    m = m
-    w = w
     alpha = lidar_data.alpha  # in degree
     l = lidar_data.length
 
     # determine robot cell (initial cell)
-    robotCell = determine_cell_index(X, Y, n, m, w)
+    robotCell = determine_cell_index_improved(X, Y, min_x, min_y, w)
 
     # output data
-    freeCells = [robotCell]
+    freeCells = (
+        []
+    )  # Start with empty list - we'll add robotCell only if there's a valid detection
 
     # absolute lidar sensor angle:
     Alpha = Theta + alpha if Theta + alpha < 360 else Theta + alpha - 360
 
     # calculate end cell
     if l == -1.0:
-        endCoordinates = calc_coordinates(
-            X, Y, Alpha, l=4.2
-        )  # where l=4.2 is the maximum range of the lidar
-        endCell = determine_cell_index(endCoordinates.x, endCoordinates.y, n, m, w)
+        # No detection - don't trace anything
+        # We have no information about this direction
+        return [robotCell], None  # Only mark robot's cell, no occupied cell
+        endCell = determine_cell_index_improved(
+            endCoordinates.x, endCoordinates.y, min_x, min_y, w
+        )
+        # Mark that we should not add any occupied cell
+        no_detection = True
     else:
         endCoordinates = calc_coordinates(X, Y, Alpha, l)
-        endCell = determine_cell_index(endCoordinates.x, endCoordinates.y, n, m, w)
+        endCell = determine_cell_index_improved(
+            endCoordinates.x, endCoordinates.y, min_x, min_y, w
+        )
+        no_detection = False
+
+    # Add robot cell to free cells for valid detections
+    freeCells = [robotCell]
 
     # check which algorithm shall we do
     if 45 < Alpha < 135:
         ySign = 1
-        y_step_algo(
-            ySign, robotCell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
+        y_step_algo_improved(
+            ySign,
+            robotCell,
+            endCell,
+            w,
+            robot_pos,
+            endCoordinates,
+            freeCells,
+            min_x,
+            min_y,
         )
-    elif 45 <= Alpha <= 225:
+    elif 135 <= Alpha <= 225:
         xSign = -1
-        x_step_algo(
-            xSign, robotCell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
+        x_step_algo_improved(
+            xSign,
+            robotCell,
+            endCell,
+            w,
+            robot_pos,
+            endCoordinates,
+            freeCells,
+            min_x,
+            min_y,
         )
     elif 225 < Alpha < 315:
         ySign = -1
-        y_step_algo(
-            ySign, robotCell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
+        y_step_algo_improved(
+            ySign,
+            robotCell,
+            endCell,
+            w,
+            robot_pos,
+            endCoordinates,
+            freeCells,
+            min_x,
+            min_y,
         )
     else:
         xSign = 1
-        x_step_algo(
-            xSign, robotCell, endCell, w, robot_pos, endCoordinates, freeCells, n, m
+        x_step_algo_improved(
+            xSign,
+            robotCell,
+            endCell,
+            w,
+            robot_pos,
+            endCoordinates,
+            freeCells,
+            min_x,
+            min_y,
         )
-
-    if l == -1.0:
-        freeCells.append(endCell)
-        endCell = None  # the lidar didn't detect any obstacle
 
     return freeCells, endCell
