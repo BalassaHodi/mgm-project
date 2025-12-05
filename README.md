@@ -1,113 +1,108 @@
 # Mobil gépek mechatronikája projektfeladat
 
----
+> A Budapesti Műszaki és Gazdaságtudományi Egyetem, Közlekedés- és Járműirányítási Tanszék, Mobil Gépek Mechatronikája tantárgy féléves projektfeladata.
 
-## 1. GitHub használata
+> Készítette: 
+> Hódi Balassa, Simon Zalán és Vincze Máté
 
-### 1.1. Lokális GitHub repo létrehozása - ezt egyszer kell megcsinálni setupoláskor
+> Konzulens: Csuzdi Domonkos
 
-Amikor először le akarjátok tölteni erről a GitHub repo-ról a file-okat lokálisan a gépetekre, mindenekelőtt be kell állítani néhány dolgot.
+> 2025/26 őszi félév
 
-**Felhasználónév és email létrehozása**
+## Általános információk
 
-A terminálba a következő parancsot kell lefuttatni:
+**Feladat rövid leírása:** Foglaltsági térkép készítése lidar és odometria információk alapján.
 
+A kódsorok egy foglaltsági térkép előállítását valósítják meg ROS2-es környezetben. Az térkép megalkotásához szükséges algoritmusok objektum orientált Python kódolással vannak létrehozva.
+
+A feladat során egy *turtlebot* segítségével kell bejárni egy adott térképet *gazebo* környezetben. Majd ennek a robotnak a lidar és odometria adatait kiolvasva meg kell alkotni egy foglaltsági térképet, ami megfelelően tárolja a feltértképezett terület információit.
+
+A feladatban a lokalizáció adott, nincs szükség lokalizációs algoritmusok létrehozására, ugyanis a robot $x-y-\theta$ értékei közvetlenül az odometria üzenetből kiolvashatóak.
+
+A foglaltsági térkép frissítése a *Bayes-elven* alapul, az egyes cellák valószínűségi értékeinek meghatározása pedig *log-odds elvre* épül. Fontos azonban megjegyezni, hogy a térkép dimenziói nem változnak dinamikusan, hanem a program kezdetekor vannak definiálva. Így ha a robot kimegy a térkép határain, akkor az ott levő adatok nincsenek feldolgozva.
+
+A lidar adatok feldolgozása, azaz a *ray tracing* (sugárkövető) algoritmus egy saját elv szerint lett implementálva. Az algoritmus úgy diszkretizálja a folytonos sugarat, hogy megvizsgálja az éleket, amelyeken áthalad, és az adott élek szomszédos celláit dolgozza fel.
+
+Ezekkel az algoritmusokkal egy megfelelő foglaltsági térkép készíthető. Erre egy példa a szimuláció során lementett kép is, ami ezen algoritmusok alkalmazásával a szimuláció közben folyamatosan frissítve lett létrehozva:
+
+![A foglaltsági térképről egy mentett kép](/occupancy_grid_mapper/data/occupancy_grid_map.png)
+
+
+## Mappa struktúra
+
+Az adattár mappáinak a tartalma az alábbiakban olvasható:
 ```
-$ git config --global user.name "Keresztnev Vezeteknev"
-$ git config --global user.email emailcim@domain.hu
-```
+occupancy_grid_mapper/  # ROS2 package
+├── data/               # szimuláció során mentett adatok
+├── launch/             # package-hez szükséges launch fájl mappája
+├── local/              # saját Python modul (OccupancyGridMap objektum) mappája
+├── resource/           # ROS2 package-hez szükséges mappa
+├── test/               # ROS2 package-hez szükséges mappa
+├── package.xml         # ROS2 package-hez szükséges fájl
+├── setup.cfg           # ROS2 package-hez szükséges fájl
+└── setup.py            # ROS2 package-hez szükséges fájl
 
-Ezek azért kellenek, hogy amikor egyes változtatásokat hozunk létre, azt lássuk, hogy ki csinálta.
-
-**A GitHub repo klónozása lokális repoba**
-
-Ehhez mindenekelőtt szükség van egy ún. _Personal Access Token_-re. Ezt a GitHub-ban lehet beállítani a következő módon:
-
-- Be kell lépni a: **Settings --> Developer Settings --> Personal access token --> Tokens(classic) --> Generate new token (classic)**
-- Itt meg lehet adni egy **Note**-ot magadnak, de ami fontos, hogy az **Expiration** legyen legalább 90 nap, illetve a **Select scopes**-nál a **repo** legyen kipipálva
-- Majd **Generate token** és az így létrejött token kódot ki kell másolni! FONTOS, mert el fog tűnni
-
-A token használatával le lehet klónozni a GitHub repo-t:
-
-```
-$ git clone https://<USERNAME>:<TOKEN>@github.com/BalassaHodi/mgm-project.git
-```
-
-Itt a `<USERNAME>` a GitHub felhasználónevetek, a `<TOKEN>` pedig az előbb kimásolt token.
-
-Majd ezt a tokent el kell menteni, hogy később ne kelljen megadni:
-
-```
-$ git config --global credential.helper store
-```
-
-### 1.2. GitHub repo-ban levő módosítások átmásolása lokális repoba
-
-Mielőtt nekikezdenétek dolgozni a feladaton, először is mindig le kell "húzni" a legkorábbi módosításokat ami a GitHub repo `main` branch-ben vannak. Ezt az alábbi módon lehet megtenni:
-
-```
-$ git checkout main
-$ git pull origin main
-```
-
-Ezzel a lokális repo `main` branch-je a legfrisebb állapotában van
-
-### 1.3. Lokális munkavégzés egy saját branch-ben
-
-Mindig ha valamit csinálni szeretnétek a projektfeladatban, azt sose a `main`-en belül tegyétek. Mindig érdemes egy branch-et létrehozni rá, amiben elvégzitek a módosításokat, majd azt feltöltitek a GitHub repo-ba, ahonnan majd átrakjuk a `main`-be.
-
-Egy lokális branch létrehozása:
-
-```
-$ git checkout -b branch-name
+Python/                 # az algoritmusok tesztelése során létrehozott kódok mappája
+├── data/               # előzetesen mentett LiDAR adatok
+├── improved/           # dinamikus térképezés algortimusai (copilot)
+├── original/           # statikus térképezés algoritmusai
+├── shared/             # saját modulok
+├── README.md           # mappához tartozó README.md (copilot)
+├── test.fixed.png      # mentett térkép (copilot)
+└── test_imports.py     # fájlok iportálásának tesztelése (copilot)
 ```
 
-A branch nevét érdemes úgy választani meg, hogy az rámutasson arra egy szóban, hogy mit csináltatok éppen.
+A feladat megoldása az `occupancy_grid_mapper/` mappában található. A `Python/`mappa mindössze az algoritmusok létrehozásához kellett. A *(copilot)* megjegyzéssel ellátott mappák és fájlok a gtihub copilot segítségével lettek létrehozva.
 
-Miután befejeztétek az adott feladatotokat, a módosított file-okat először fel kell küldeni a "staged" file-ok közé:
+## ROS2 package futtatása
+Az adattár mentését egy ROS2-es "workspace" `src/` mappájában érdemes megtenni, ugyanis így lesz a package könnyen futtatható.
 
-```
-$ git add file-name
-```
-
-Vagy hasonló módon, ha minden módosított file-t fel akarsz rakni:
-
-```
-$ git add .
+A mentés után a ROS2 "workspace" mappáját "build"-elni kell, majd újraindítani a .bashrc-t. Ezt a "workspace" mappájában az alábbi terminál parancsokkal lehet megtenni:
+```bash
+colcon build --packages-select occupancy_grid_mapper
+source ~/.bashrc
 ```
 
-Ezután ha már végeztünk egy adott feladaton belül egy módosítással, azt "commit"-olni lehet. A commitokat érdemes úgy létrehozni, hogy mindig egy adott prokekthez/feladathoz/munkához tartozó fileok és módosítások legyenek benne. Ne legyen benne túl sok különböző tematkájú munka, azokhoz érdemes külön commit-ok. A commmit menete:
-
-```
-$ git commit -m "Ide jon egy rovid uzenet ami leirja az adott commit-ban mit csinaltatok"
-```
-
-### 1.4. Lokális branch felküldése GitHub repo-ba és Pull Request létrehozása
-
-Miután végeztetek egy adott branch-el, egy adott feladattal, amihez külön létrehoztatok egy branch-et, és úgy gondoljátok ezt a többieknek is érdemes látniuk, akkor kell felküldeni ezt a branch-et a GitHub repoba az alábbi módon:
-
-```
-$ git push origin branch-name
+Ezt követően a package futtatható a launch fájljával:
+```bash
+ros2 launch occupancy_grid_mapper occupancy_grid_mapper.launch.xml
 ```
 
-Miután ez megvolt, hogy a többiek lássák a változtatásokat, és közösen elfogadjuk azt, létre kell hozni egy _Pull Request_-et GitHub-on. Ez az alábbi módon történik:
+Ezzel megnyílik a gazebo-ban a szimuláció. A turtlebot irányításához egy másik package szükséges, ennek elindítása:
+```bash
+ros2 run turtlebot3_teleop teleop_keyboard
+```
+Ilyenkor a "w-a-s-d-x" billentyűkkel lehet a robot sebességeit vezérelni.
 
-- Valószínűleg megjelenik egy **Compare & pull request** gomb, ha nem: **Pull Request --> New pull request**
-- Meg kell adni:
-  - **Title:** Címet adni
-  - **Description:** Rövid magyarázat a változtatásokról
-  - **Reviewers:** Ide meg lehet adni azt akinek ezt érdemes megnéznie (mindenkit akár)
-- majd **Create Pull Request**
+A létehozott foglaltsági tértképet el lehet menteni a futás során. Ehhez az alábbi paraméterek beállítása szükséges a futás során:
+```bash
+ros2 param set file_path "<a_mentés_helyének_útvonala>"
+ros2 param set want_to_save "true"
+```
+Ilyenkor fontos, hogy a kód a térkép egyes celláinak az értékeit menti el egy 2D-s tömbben a meghatározott fájlba. Érdemes .csv vagy .txt kiterjesztésű fájlba menteni az adatokat.
 
-Ezt a _Pull request_-et a többiek megnézhetik, kommentelhetnek alá, kérhetnek változásokat, de majd ha el lett fogadva jónak, akkor össze lehet fűzni a `main` branch-el a **Merge pull request** gombra kattintva.
+Ha a szimuláció során már nem kívánjuk menteni a tértképet azt a következő módon tehetjük meg:
+```bash
+ros2 param set want_to_save "false"
+```
 
-Miután ez megvolt le lehet törölni a githubban a branchet, illetve lokálisan is le lehet törölni az adott branchet:
+A mentett térképről .png kép is alkotható, ehhez azonban először szükséges a `occupancy_grid_mapper/local/OccupancyGridMap.py` fájl végnek módosítása:
+```python
+# debug the OccupancyGridMap class
+if __name__ == "__main__":
+    # load data from a file and visualize the map
+    map = OccupancyGridMap(8.0, 8.0, 0.05)          # <-- ide ugyanazok az adatok kerüljenek, amik a mentett fájl térképére jellemzőek
+    map.load_map(
+        "<a_mentett_térkép_helyének_útvonala>"      # <-- ide a paraméterben magadott elérési út kell
+    )
+    map.visualize_map(
+        saveMap=False,                              # <-- ha menteni szeretnénk legyen "True"
+        filePath="<a_menteni_kívánt_kép_útvonala>", # <-- a kép mentésének a helyének megadása
+    )
 
 ```
-$ git checkout main
-$ git branch -d branch_name_that_you_want_to_delete
+Majd ezután a kód lefuttatható az `occupancy_grid_mapper/local` mappából:
+```bash
+python3 OccupancyGridMap.py
 ```
-
-### 1.5. Lokális repo frissítése, munkafolyamat ismétlése
-
-Miután GitHub-ban merge-elve lett a branch és a main, azután hogy a legfrissebb legyen a lokális `main`, így megismételjük elölről a folyamatot az **1.2.** ponttól.
+Ilyenkor ha mentjük a képet, akkor nem jelenik meg, ha viszont csak vizualizálni szeretnénk, akkor megjelenik a kép egy külön ablakban.
