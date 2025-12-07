@@ -8,6 +8,15 @@
         <arg name="y_pose" value="$(var y_pose)" />
     </include>
 
+    <!-- turtlebot3_gazebo with dqn stage4 world -->
+    <!-- <arg name="x_pose" default="0.0" />
+    <arg name="y_pose" default="0.0" />
+    <include file="$(find-pkg-share turtlebot3_gazebo)/launch/turtlebot3_dqn_stage4.launch.py">
+        <arg name="use_sim_time" value="true" />
+        <arg name="x_pose" value="$(var x_pose)" />
+        <arg name="y_pose" value="$(var y_pose)" />
+    </include> -->
+
     <!-- CUSTOM NODES -->
     <!-- Scan process node  -->
     <node pkg="occupancy_grid_mapper" exec="process_scan" name="process_scan" output="screen">
