@@ -76,14 +76,14 @@ Ilyenkor a "w-a-s-d-x" billentyűkkel lehet a robot sebességeit vezérelni.
 
 A létehozott foglaltsági tértképet el lehet menteni a futás során. Ehhez az alábbi paraméterek beállítása szükséges a futás során:
 ```bash
-ros2 param set file_path "<a_mentés_helyének_útvonala>"
-ros2 param set want_to_save "true"
+ros2 param set /process_scan file_path "a_mentés_helyének_útvonala"
+ros2 param set /process_scan want_to_save "true"
 ```
 Ilyenkor fontos, hogy a kód a térkép egyes celláinak az értékeit menti el egy 2D-s tömbben a meghatározott fájlba. Érdemes .csv vagy .txt kiterjesztésű fájlba menteni az adatokat.
 
 Ha a szimuláció során már nem kívánjuk menteni a tértképet azt a következő módon tehetjük meg:
 ```bash
-ros2 param set want_to_save "false"
+ros2 param set /process_scan want_to_save "false"
 ```
 
 A mentett térképről .png kép is alkotható, ehhez azonban először szükséges a `occupancy_grid_mapper/local/OccupancyGridMap.py` fájl végnek módosítása:
